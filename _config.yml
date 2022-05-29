@@ -1,6 +1,6 @@
-site: Sidey
-url: #yoururl
-title: Sidey
+site: Tim Leonard's Website
+url: http://blog.timleonard.uk
+title: Tim Leonard's Website
 description: Simple and minimalistic jekyll blogging theme.
 twitter:
   username: #yourusername
@@ -8,10 +8,10 @@ twitter:
   creator: #yourusername
 author:
   twitter: #yourusername
-  name: #yourusername
+  name: Tim Leonard
   avatar:
-  email: #youremail
-  url: #yoururl
+  email: me@timleonard.uk
+  url: http://blog.timleonard.uk
 permalink: pretty
 
 baseurl: ""
