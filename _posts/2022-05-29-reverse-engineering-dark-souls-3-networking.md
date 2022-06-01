@@ -3,7 +3,7 @@ layout: post
 title: Reverse Engineering Dark Souls 3 Networking (Part 1)
 description: Breaking down and investigating how Dark Souls 3 communicates with its online services.
 summary: Breaking down and investigating how Dark Souls 3 communicates with its online services.
-tags: [reverse engineering,networking,dark souls 3,multiplayer]
+tags: [reverse engineering,networking,dark souls 3,multiplayer,ds3os]
 ---
 
 # The Backstory
