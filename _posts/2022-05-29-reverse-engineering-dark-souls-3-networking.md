@@ -94,13 +94,15 @@ So what is this function? It takes in a block of data and 4 ints, then does ~som
 
 Well it turns out its actually an implementation of the [Tiny Encryption Algorithm](https://en.wikipedia.org/wiki/Tiny_Encryption_Algorithm). FromSoftware is being extra sneaky by encrypting the encryption keys. The 4 ints are the TEA key and the block of data is what contains our public key and hostname.
 
-The data being decrypted is static and stored at offset *0x144F4A5B1* (on the current patch at time of writing). Its hidden interleaved in a block of unrelated code (very sneaky!). Its encrypted with a static key of:
+The data being decrypted is static and stored at offset *0x144F4A5B1* (on the current patch at time of writing). Its hidden interleaved in a block of unrelated code (very sneaky!). 
+
+ ![Ghidra showing TEA data](/assets/images/posts/ds3os/ghidra_tea_block.png)
+
+Its encrypted with the following static key:
 
 ```
 0x4B694CD6, 0x96ADA235, 0xEC91D9D4, 0x23F562E5
 ```
-
- ![Ghidra showing TEA data](/assets/images/posts/ds3os/ghidra_tea_block.png)
 
 So now the offset is known, connecting to a different game server is as simple as writing our own data blob, encrypting it with the known key, then launching the game and patching the offset it with a simple call to (WriteProcessMemory)[https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory].
 
