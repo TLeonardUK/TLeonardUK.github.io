@@ -107,7 +107,7 @@ So now the offset is known, connecting to a different game server is as simple a
 The format of the data blob is nice and straightforward:
 
 | Offset      | Size        | Description |
-| ----------- | ----------- | ----------- |
+|:----------- |:----------- |:----------- |
 | 0           | 0x1B0       | UTF8 PEM encoded public key |
 | 0x1B0       | 0x58        | UTF16 hostname of server |
 
