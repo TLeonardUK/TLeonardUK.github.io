@@ -102,9 +102,9 @@ The data being decrypted is static and stored at offset *0x144F4A5B1* (on the cu
 
  ![Ghidra showing TEA data](/assets/images/posts/ds3os/ghidra_tea_block.png)
 
-So now the offset is known, connecting to a different game server is as simple as writing our own data blob, with our own keys and hostname, and patching the game memory at the offset.
+So now the offset is known, connecting to a different game server is as simple as writing our own data blob, encrypting it with the known key, then launching the game and patching the offset it with a simple call to (WriteProcessMemory)[https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory].
 
-The format of the data blob is nice and straightforward:
+The format of the data blob is also nice and straightforward, so its easy for us to build:
 
 | Offset      | Size        | Description |
 |:----------- |:----------- |:----------- |
