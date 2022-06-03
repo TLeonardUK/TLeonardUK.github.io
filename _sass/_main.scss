@@ -1,3 +1,5 @@
+@import "sass-code-highlight/vs.scss";
+
 *,:after,:before {
 	box-sizing:border-box;
 	background-color:inherit;
@@ -47,7 +49,8 @@ pre {
 }
 
 code,pre {
-	background: rgb(236, 237, 238);
+	background: rgb(22, 22, 22);
+    color: rgb(255, 255, 255)
 }
 
 code {

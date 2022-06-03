@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Reverse Engineering Dark Souls 3 Networking (Part 1)
+title: Reverse Engineering Dark Souls 3 Networking (#1 - Connection)
 description: Breaking down and investigating how Dark Souls 3 communicates with its online services.
 summary: Breaking down and investigating how Dark Souls 3 communicates with its online services.
 tags: [reverse engineering,networking,dark souls 3,multiplayer,ds3os]
@@ -42,7 +42,7 @@ Getting the game to connect to a different server is suprisingly more involved t
 
 The initial connection made is a TCP connection, specifically to **fdp-steam-ope-login.fromsoftware-game.net**, this can be seen by taking a wireshark capture of the game booting up.
 
- ![Wireshark showing hostname](/assets/images/posts/ds3os/wireshark_hostname.png)
+[![Wireshark showing hostname](/assets/images/posts/ds3os/wireshark_hostname.png)](/assets/images/posts/ds3os/wireshark_hostname.png)
 
 <sup>Note: 54.148.23.40 is the resolved ip of fdp-steam-ope-login.fromsoftware-game.net. Imagine a complete connection here, FromSoftware's servers are down at the time of writing.</sup>
 
@@ -50,19 +50,19 @@ My initial thoughts at this point would probably be to add a host file entry, or
 
 However if we look at the actual data being sent during this initial connection, you might notice a stumbling block:
 
- ![Wireshark showing initial packet data](/assets/images/posts/ds3os/wireshark_initial_data.png)
+[![Wireshark showing initial packet data](/assets/images/posts/ds3os/wireshark_initial_data.png)](/assets/images/posts/ds3os/wireshark_initial_data.png)
 
 That looks suspiciously like its encrypted or ciphered in some way! Not a problem you might say? Just find the encryption key? 
 
 Well if we load the game's exe up in my favourite decompiler, [Ghidra](https://github.com/NationalSecurityAgency/ghidra), we could have a look for clues! The game makes use of RTTI (Runtime Type Information), so there is a wealth of type names that can give us a general idea of how the game structures things.
 
- ![Ghidra showing Nauru functions](/assets/images/posts/ds3os/ghidra_nauru.png)
+[![Ghidra showing Nauru functions](/assets/images/posts/ds3os/ghidra_nauru.png)](/assets/images/posts/ds3os/ghidra_nauru.png)
 
 Aha, that is promising, lots of class names that look very much like they handle network communications. And if we look even closer we can see two very interesting types - CWCObject and RSAObject, both of which contain names of encryption ciphers. In fact the Nauru namespace is actually where the game stores all the logic for handling connections to the game server.
 
 To determine if these are used we can search in Ghidra for the places these types are referenced. Doing so will turn up a handful of functions that look like constructors.
 
- ![Ghidra showing RSAObject constructor](/assets/images/posts/ds3os/ghidra_rsaobjet_constructor.png)
+[![Ghidra showing RSAObject constructor](/assets/images/posts/ds3os/ghidra_rsaobjet_constructor.png)](/assets/images/posts/ds3os/ghidra_rsaobjet_constructor.png)
 
 If we run the game with a debugger attached, and place breakpoints in these functions, we can determine the only type used at the same time the initial connection takes place is RSAObject.
 
@@ -72,13 +72,13 @@ So the question then becomes, can we trick the game into using a key we supply, 
 
 So lets start with the easy steps first, and search the exe for reference to the server hostname or anything that look like public keys (which are normally stored in some very obvious, easily searchable, formats like [PEM](https://www.cryptosys.net/pki/rsakeyformats.html)). If we find these, we should just be able to patch them.
 
- ![Ghidra showing no string results](/assets/images/posts/ds3os/ghidra_string_search.png)
+[![Ghidra showing no string results](/assets/images/posts/ds3os/ghidra_string_search.png)](/assets/images/posts/ds3os/ghidra_string_search.png)
 
-Bad luck, none of our string searchs show anything useful. 
+Bad luck, none of our string searchs show anything useful, just some parts of the OpenSSL library. 
 
 Interestingly if we look at the previous entries in the Dark Souls series we can see the keys and hostname ARE hard-coded in the exe in a visible format.
 
- ![Ghidra showing Dark Souls 2 keys](/assets/images/posts/ds3os/ghidra_darksouls2_keys.png)
+[![Ghidra showing Dark Souls 2 keys](/assets/images/posts/ds3os/ghidra_darksouls2_keys.png)](/assets/images/posts/ds3os/ghidra_darksouls2_keys.png)
 
 So unless Dark Souls 3 has fundementally changed how it handles online connections, which seems unlikely as most of the RTTI in the area matches up, then the key is probably obfuscated or stored in a different location.
 
@@ -86,7 +86,7 @@ We know that the key has to be available in memory at the point its passed to th
 
 Doing so (and spending several hours staring at a debugger) will eventually lead us to this function, which is what produces the public key (and hostname!).
 
- ![Ghidra showing TEA encrypt](/assets/images/posts/ds3os/ghidra_tea_encrypt.png)
+[![Ghidra showing TEA encrypt](/assets/images/posts/ds3os/ghidra_tea_encrypt.png)](/assets/images/posts/ds3os/ghidra_tea_encrypt.png)
 
 You can ignore the disassembly for this one, Ghidra does a poor job of it generating it in this case.
 
@@ -96,7 +96,7 @@ Well it turns out its actually an implementation of the [Tiny Encryption Algorit
 
 The data being decrypted is static and stored at offset *0x144F4A5B1* (on the current patch at time of writing). Its hidden interleaved in a block of unrelated code (very sneaky!). 
 
- ![Ghidra showing TEA data](/assets/images/posts/ds3os/ghidra_tea_block.png)
+[![Ghidra showing TEA data](/assets/images/posts/ds3os/ghidra_tea_block.png)](/assets/images/posts/ds3os/ghidra_tea_block.png)
 
 Its encrypted with the following static key:
 
@@ -104,7 +104,7 @@ Its encrypted with the following static key:
 0x4B694CD6, 0x96ADA235, 0xEC91D9D4, 0x23F562E5
 ```
 
-So now the offset is known, connecting to a different game server is as simple as writing our own data blob, encrypting it with the known key, then launching the game and patching the offset it with a simple call to (WriteProcessMemory)[https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory].
+So now the offset is known, connecting to a different game server is as simple as writing our own data blob, encrypting it with the known key, then launching the game and patching the offset it with a simple call to [WriteProcessMemory](https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory).
 
 The format of the data blob is also nice and straightforward, so its easy for us to build:
 
