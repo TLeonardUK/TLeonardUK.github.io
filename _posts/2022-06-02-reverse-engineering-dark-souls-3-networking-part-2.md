@@ -22,7 +22,7 @@ Thats quite the block of seemingly unintelligible bytes.
 
 However if you look careful at the first few bytes you will notice the data has fairly low entropy - lots of repeating zeros for example. Following this block the remainder of the bytes look to be exactly the opposite - very high entropy.
 
-We can take a reasoned guess that the low-entry bytes at the start are a header of some description, describing the block of encrypted bytes that follow. You will see similarly structured data in a lot of protocols that use TCP, as they make it simpler to break up the stream of data into individually processed packets.
+We can take a reasoned guess that the low-entry bytes at the start are a header of some description, describing the block of encrypted bytes that follow. You will see similarly structured data in a lot of protocols that use TCP, as they make it simpler to break up the stream of data into individually processed packets, this is typically known as message framing.
 
 Looking at the header in more detail we can start to break down what it actually contains:
 
@@ -30,7 +30,7 @@ Looking at the header in more detail we can start to break down what it actually
 
 In total we have 26 bytes we need to decipher the format of.
 
-The first 2 bytes are easy to figure out - to deliminate a stream of data into individual packets we need to know the amount of data to recieve before processing it (this is typically known as message framing). The first 2 bytes are <code>01 18</code> (decimal 280) which is exactly equal to the length of remaining data after it.
+The first 2 bytes are easy to figure out - to deliminate a stream of data into individual packets we need to know the amount of data to recieve before processing it. The first 2 bytes are <code>01 18</code> (decimal 280) which is exactly equal to the length of remaining data after it.
 
 ```cpp
 struct message_header
@@ -42,7 +42,7 @@ struct message_header
 
 [![Initial Packet header](/assets/images/posts/ds3os_2/initial_packet_header_2.png)](/assets/images/posts/ds3os_2/initial_packet_header_2.png)
 
-We can guess from the repeated runs of zeros in the rest of the header that we are likely looking at multiple little endian multi-bytes values containing small values. If we break the buffer up assuming the non-zero values are in the least-significant bytes, we can get a rough idea of the structure.
+We can guess, from the repeated runs of zeros, that the remainder of the header is likely made up of multiple little-endian multi-byte fields which contain small values. If we break the buffer up assuming the non-zero values are in the least-significant bytes, we can get a rough idea of the structure.
 
 [![Initial Packet header](/assets/images/posts/ds3os_2/initial_packet_header_3.png)](/assets/images/posts/ds3os_2/initial_packet_header_3.png)
 
@@ -64,7 +64,7 @@ struct message_header
 };
 ```
 
-To start breaking down these values a simple trick is to try connecting multiple times in a row and see what changes in the packet from run to run, this allows us to seperate out any dynamic data from static data.
+We can use a simple trick to start breaking down these values. By trying to connect multiple times in a row, we can see what changes in the packet each time, this allows us to seperate out any dynamic data from static data.
 
 [![Initial Packet header](/assets/images/posts/ds3os_2/initial_packet_header_4.png)](/assets/images/posts/ds3os_2/initial_packet_header_4.png)
 
@@ -87,9 +87,9 @@ struct packet_header
 };
 ```
 
-If we look at the values in each of these fields we will see 2 with the repeated value <code>01 0C</code> (decimal 268), which is the number of bytes that follow the after these fields.
+If we look at the values in each of these fields we will see 2 with the repeated value <code>01 0C</code> (decimal 268), which is the number of bytes that follow the after these specific fields.
 
-What we are looking at here is nested-protocols. We have a packet, who's payload contains a message, whos payload contains the actual encrypted message. Both the message and the packet have a header which we are currently assuming is a single header. If we break this into multiple structures and annotate the lengths we can start to make more sense of this.
+What we are looking at here is nested-protocols. We have a packet, who's payload contains a message, whos payload contains the actual encrypted data. Both the message and the packet have a header, they are adjacent in memory causing us to currently assume they are a single header. If we break this into multiple structures and annotate the lengths we can start to make more sense of this.
 
 [![Initial Packet header](/assets/images/posts/ds3os_2/packet_disasmbiguation.png)](/assets/images/posts/ds3os_2/packet_disasmbiguation.png)
 
@@ -123,7 +123,7 @@ Now that we have disambiguated the message header from the packet header, some o
 
 We can now determine that unknown_2 and unknown_3, which are always 0, are almost certainly compiler-added padding to ensure that payload_length has correct alignment.
 
-We can also determine the 2 sequence numbers are part of seperate protocols - one is for packets, one is for messages.
+We can also determine the 2 sequence numbers are part of different frames of data - one is for packets, one is for messages.
 
 ```cpp
 struct packet_prefix
@@ -188,7 +188,7 @@ The first and most obvious thing to notice is the header is longer.
 
 Any responses to a clients request messages have 16 additional bytes added to the end of the message_header. The value of these 16 bytes is always static, and never changes. The values are 4 uint32_t's with the second having a value of 1 and the rest a value of 0.
 
-Also worth mentioning is replies always have a message type of 0, and a sequence number that matches the initial message that prompted the reply, as we assumed earlier.
+Along with that its also worth noting that replies always have a message type of 0, and a sequence number that matches the initial message that prompted the reply, which confirms our assumption earlier.
 
 ```cpp
 struct packet_prefix
@@ -232,11 +232,11 @@ I've never been able to determine the point of these values, they don't do anyth
 
 At this point we have enough information to emulate the sending and recieving of messages from the game server. However we do not yet know how the payload of the message is structured.
 
-The first step is to get it decrypted. With the keypair we made in the previous part of this guide, we can now decrypt it using the private key, using OpenSSL we just need to make a call to [RSA_private_encrypt](https://www.openssl.org/docs/man1.1.1/man3/RSA_private_decrypt.html). 
+The first step is to get it decrypted. With the keypair we made in the previous part of this guide, we can now decrypt it using the private key. Using OpenSSL we just need to make a call to [RSA_private_encrypt](https://www.openssl.org/docs/man1.1.1/man3/RSA_private_decrypt.html). 
 
-The padding mode depends on which side of the connection we are on, the client encrypts using RSA_PKCS1_OAEP_PADDING, while the server encrypts using RSA_X931_PADDING, this can be confirmed by breakpointing the RSA encryption and decryption functions in a debugger.
+The padding mode depends on which side of the connection we are on, the client encrypts using **RSA_PKCS1_OAEP_PADDING**, while the server encrypts using **RSA_X931_PADDING**, this can be confirmed by breakpointing the RSA encryption and decryption functions in a debugger.
 
-You may ask how the client decrypts messages from the server if it only has a public key. The game exploits an intresting bit of trivia with RSA cryptography, its possible to encrypt with the private key and decrypt with the public key. This is exactly what happens when the server sends the client message. For anyone contemplating doing this in their own projects, don't, it's terrible for a number of reasons, you can read some of them [here](https://rdist.root.org/2007/05/01/rsa-public-keys-are-not-private/), written by someone far more knowledgable about cryptography than myself. 
+As our encryption is asymetric, you may be asking how the client decrypts messages send by the server if it only has a public key. To do this the game exploits an intresting quirk of RSA cryptography, its possible to encrypt with the private key and decrypt with the public key. This is exactly what happens when the server sends the client message. For anyone contemplating doing this though, don't, it's terrible for a number of reasons. You can read some of these reasons [here](https://rdist.root.org/2007/05/01/rsa-public-keys-are-not-private/), written by someone far more knowledgable about cryptography than myself. 
 
 So anyway, once we've decrypted the first message payload, what exactly do we get?
 
@@ -248,11 +248,11 @@ So what is this exactly? Well just looking at the text representation you can se
 
 Well this one requires a bit more investigation of the exe in ghidra.
 
-If we look around at the code the Nauru namespace references, you will see a lot of RTTI references to types such as "MessageLite". A quick google search will show us that these types are part of Protobuf, googles structured data serialization format. And if we look even further we will a couple of namespaces (Frpg2RequestMessage and Frpg2PlayerData) that contain a whole lot of types with MessageLite related functions in their virtual function table.
+If we look around at the code the Nauru namespace references, you will see a lot of RTTI references to types such as "MessageLite". A quick google search will show us that these types are part of Protocol Buffers (typically shortened to Protobuf), google's structured data serialization format. And if we look even further we will a couple of namespaces (Frpg2RequestMessage and Frpg2PlayerData) that contain a whole lot of types with MessageLite related functions in their virtual function table.
 
 [![Ghidra Showing Protobuf](/assets/images/posts/ds3os_2/ghidra_protobuf_requests.png)](/assets/images/posts/ds3os_2/ghidra_protobuf_requests.png)
 
-Protobuf works by having a compiler that generates compilable code for a specific language, that will serialize protobuf data structures. These data structures are defined in a language-neutral .proto files that look something like this:
+Protobuf works by having its own compiler that generates compilable code for a specific language, this code is then capable of serializing protobuf data structures. These data structures are defined in a language-neutral .proto files that look something like this:
 
 ```protobuf
 message Person {
@@ -261,10 +261,11 @@ message Person {
   optional string email = 3;
 }
 ```
+<sup>Note: For people unfamiliar with .proto syntax, the equals value is assigning each field an index used for matching up serialized values to the fields, its not setting a field's value!</sup>
 
 The RTTI types we've found are for the classes that were generated by the protobuf compiler. One of which exists for each message that is sent across the connection!
 
-So now all we need to do is create a a .proto file that matches the data that is sent and recieved and we can deserialize and manipulate it easily!
+Unfortunately the source .proto files are not shipped with the game. So now all we need to do is create our own .proto file that matches the data and we can deserialize and manipulate it easily!
 
 # Reverse-Engineering Protobufs
 
@@ -276,17 +277,17 @@ This was probably the most time-consuming part of making DS3OS. Especially as th
 
 There are two useful tools we can use to make this process easier. 
 
-If we log each protobuf recieved we can use the --decode option in Protobuf compiler (protoc). This will tell us the field number as well as data type. However while useful, this is very problematic when optional fields are defined, or for messages we cannot get captures of easily.
+If we log each protobuf recieved we can use the --decode option in Protobuf compiler (protoc). This will show us the field number, value and data type of each field in the provided protobuf. However while useful, this is very problematic when optional fields are defined, or for messages we cannot get captures of easily.
 
-A much more robust way we can do this is to read the parsing code in Ghidra, and reconstruct the potential fields from there. Index 7 in the vtable of each type is the deserialization function.
+A much more robust way we can do this is to read the parsing code in Ghidra, and reconstruct the fields from there. Index 7 in the vtable of each type is the deserialization function.
 
 Take for example the following Protobuf deserialization function (this is for the message called RequestQueryLoginServerInfo).
 
 [![Ghidra Showing Dissassembly](/assets/images/posts/ds3os_2/ghidra_protobuf_decompile.png)](/assets/images/posts/ds3os_2/ghidra_protobuf_decompile.png)
 
-This might seem indecipherable, but if we know one single thing about the protobuf wire format ([lots of info here](https://developers.google.com/protocol-buffers/docs/encoding)) it becomes much easier to understand.
+This might seem indecipherable, but if we know one single thing about the protobuf wire format ([lots of info about the format here](https://developers.google.com/protocol-buffers/docs/encoding)) it becomes much easier to understand.
 
-Prefixed before each field in the protobuf wire format is a byte whose first 3 bits are the format of the field, and the remaining bits are the fields index. This leads to a very common pattern in the disassembled code:
+Prefixed before each field in the protobuf wire format is a uint16_t whose first 3 bits are the format of the field, and the remaining bits are the fields index. This leads to a very common pattern in the disassembled code:
 
 ```cpp
 uVar8 = uVar4 >> 3;
@@ -294,7 +295,7 @@ if (uVar8 == 1) {
     if (((byte)uVar4 & 7) == 2) {
 ```
   
-We can see uVar8 is stripping off the first 3 bits of uVar4. So we can assume here its trying to get the field index. We can also see further below that we are bitwise-and'ing uVar4 with 7, which in effect retrieves the field data type. You can rewrite the above code like this:
+We can see uVar8 is shifting off the first 3 bits of uVar4. So we can assume here its trying to get the field index. We can also see further below that we are bitwise-and'ing uVar4 with 7, which in effect retrieves the field data type. You can rewrite the above code like this:
  
 ```cpp
 field_index = field_prefix >> 3;
@@ -333,7 +334,7 @@ message RequestQueryLoginServerInfoResponse {
 
 As you might have guessed from the names. The original server the client communicates with acts as an introduction server, taking some basic details and telling them which server they should communicate with next. 
 
-In general the retail server will always direct the user to the same server & port, I imagine this might direct users to different servers in pre-release/press/development situations. 
+In general the retail server will always direct the user to the same server & port, I imagine this might direct users to different servers in pre-release/press/development scenarios. 
 
 # Coming up
 
