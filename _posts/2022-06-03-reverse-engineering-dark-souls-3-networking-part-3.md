@@ -123,13 +123,13 @@ Well we can easily verify this. Steam has a developer mode, one function of whic
 
 [![Steam API Log](/assets/images/posts/ds3os_3/steam_api_log.png)](/assets/images/posts/ds3os_2/steam_api_log.png)
 
-Yup, that looks like it matches - the client requests an encrypted ticket just before it communications with the server, and it looks to be the same length!
+Yup, that looks like it matches - the client requests an encrypted ticket just before it communicates with the server, and it looks to be the same length!
 
-At this point, the server authenticates the ticket with the steamworks backend. If the ticket fails to validate the user is disconnected. If the ticket is validated the server sends a response with an non-protobuf 184 byte payload.
+At this point, the server authenticates the ticket with the steamworks backend. If the ticket fails to validate the player is abruptly disconnected. If the ticket is validated the server sends a response with an non-protobuf 184 byte payload.
 
 # Game Server Info
 
-And oh boy is this that payload interesting. Its structured roughly like this:
+And oh boy is this payload interesting. Its structured roughly like this:
 
 ```cpp
 struct Frpg2GameServerInfo
@@ -154,20 +154,22 @@ struct Frpg2GameServerInfo
 };
 ```
 
-Its main purpose is to provide the client with the ip address and port of the next server it needs to connect to. The final and most important server - the game server that handles all our requests for in-game features, and the topic of the next blog entry.
+Its main purpose is to provide the client with the ip address and port of the next server it needs to connect to. This server is the final and most important server - the game server which handles all our requests for in-game features, and the topic of the next blog entry.
 
-In the retail environment there are actually two different servers you can be directed to here. If the server has flagged you in the past for cheating, which it does en-mass every wednesday, you will be redirected to a "banned server". Otherwise you will be redirected to the normal game server. Its impossible to play with people on other servers, banned players will only be able to play with other banned players, and the same for unbanned players. Banned players are essentially quarantined while still allow them to play online.
+In the retail environment there are actually two different servers you can be directed to here. If the server has flagged you in the past for cheating, which it does en-mass every week, you will be redirected to a "banned server". Otherwise you will be redirected to the normal game server. It's impossible to play with people on other servers, banned players will only be able to play with other banned players, and the same for unbanned players. Banned players are essentially quarantined while still allow them to play online.
 
-Before we start looking at the next server, there are some entries in this structure that are of interest and we should note before moving on.
+This "banned server" is also where anyone playing mods online will end up, which is a massive shame. It means some of the massive overhaul mods like [Cinders](https://www.nexusmods.com/darksouls3/mods/310) can only play online on servers filled with people cheating. This was one of the main reasons for writing DS3OS, it gives somewhere safe for people with modded games to play.
+
+Before we start looking at the next server, there are some entries in this structure that are quite interesting.
 
 auth_token its a randomly generated number we will be using on the game server to tell it we have been authenticated by this server and to let us connect. We will go more into detail about how this fits into things in the future.
 
-unknown_1 through unknown_11 haven't been investigated much yet. They must be set to the values shown above though or the game will crash. I speculate from the behaviour I've seen that that these are potentially configuration values for memory allocation.
+unknown_1 through unknown_11 haven't been investigated much yet. They must be set to the values shown above though or the game will crash. I speculate from the behaviour I've seen that that these are potentially configuration values for memory allocation, they have very suspicious power-of-two-ey numbers which definitely makes me believe they were defined by a programmer.
 
-unknown_horror however is where the real fun is. Its uninitialized data, which appears to be leaking parts of the stack on the game server. Uh-oh. Given the security problems the Dark Soul's games have recently been notorious for ([Info here for those out of the loop](https://www.fanbyte.com/news/dark-souls-3-rce-vulnerability-code-present-elden-ring/)), it really does feel like FromSoftware should probably hire some pen-testers and audit their network code.
+unknown_horror however is where the real fun is. It's uninitialized data, which appears to be leaking parts of the stack on the game server. Uh-oh. Given the security problems the Dark Soul's games have recently been notorious for ([Info here for those out of the loop](https://www.fanbyte.com/news/dark-souls-3-rce-vulnerability-code-present-elden-ring/)), it really does feel like FromSoftware should probably hire some pen-testers and audit their network code.
 
 But anyhow, we have our destination, so onwards to the game server!
 
 # Coming Up
 
-This was a fairly short post as this "authentication" server doesn't do a whole lot, but is an important piece of the network architecture. The upcoming one is going to start going over the game-server, and its going to be -chonky- as there are a lot of things to go over for it. But we're almost to the point of looking at game-visible mechanics!
+This was a fairly short post as the "authentication" server doesn't do a whole lot, but is an important piece of the network architecture. In the upcomingblog post we are going to start looking into the game-server, and it's going to get -chonky- as there are a lot of things to go over for it. But we're almost to the point where we can start looking at game-visible mechanics!
