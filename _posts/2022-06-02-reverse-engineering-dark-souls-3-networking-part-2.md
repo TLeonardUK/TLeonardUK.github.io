@@ -339,3 +339,5 @@ In general the retail server will always direct the user to the same server & po
 # Coming up
 
 In the next post I'll be going over what the next server in the chain is responsible for (Oh by the way, its a chain, we get forwarded to other exciting servers after the next one!).
+
+[Continue to the next entry](/2022/06/03/reverse-engineering-dark-souls-3-networking-part-3)
