@@ -108,11 +108,13 @@ So now the offset is known, connecting to a different game server is as simple a
 
 The format of the data blob is also nice and straightforward, so its easy for us to build:
 
-| Offset      | Size        | Description |
-|:----------- |:----------- |:----------- |
-| 0           | 0x1B0       | UTF8 PEM encoded public key |
-| 0x1B0       | 0x58        | UTF16 hostname of server |
-
+```cpp
+struct server_info_blob
+{
+    uint8_t public_key[0x1B0]; // UTF-8 PEM encoded public key.
+    uint8_t hostname[0x58];    // UTF-16 encoded hostname of server. 
+};
+```
 
 # Coming up
 
