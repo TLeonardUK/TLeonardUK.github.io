@@ -116,4 +116,6 @@ The format of the data blob is also nice and straightforward, so its easy for us
 
 # Coming up
 
-In the next post I'll be discussing how the initial connection protocol was reverse engineered. Coming up shortly ...
+In the next post I'll be discussing how the initial connection protocol was reverse engineered. 
+
+[Continue to the next entry](/2022/06/02/reverse-engineering-dark-souls-3-networking-part-2)
