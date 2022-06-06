@@ -48,7 +48,7 @@ Normally what happens in this situation is both game and server send each other 
 
 So what cipher does the game use for all future communications if not RSA? It uses a very obscure ones, that as far as I'm aware only has a single implementation public on the internet - in the original authors [GitHub](https://github.com/BrianGladman/modes/). The cipher is AES-CWC-128.
 
-Also if you wanted to use the reference implementation, you might be disappointed! FromSoftware for whatever reason decided to flip the endian of some calculations in the middle of the implementation (at like 498 of cwc.c if your curious). Good job to the guys on the ?ServerName? discord who managed to figure out that nightmare.
+Also if you wanted to use the reference implementation, you might be disappointed! FromSoftware for whatever reason decided to flip the endian of some calculations in the middle of the implementation (at line 498 of cwc.c if your curious). Good job to the guys on the ?ServerName? discord who managed to figure out that nightmare.
 
 # Authentication Flow
 
