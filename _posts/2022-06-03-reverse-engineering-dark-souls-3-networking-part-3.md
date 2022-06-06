@@ -172,4 +172,4 @@ But anyhow, we have our destination, so onwards to the game server!
 
 # Coming Up
 
-This was a fairly short post as the "authentication" server doesn't do a whole lot, but is an important piece of the network architecture. In the upcomingblog post we are going to start looking into the game-server, and it's going to get -chonky- as there are a lot of things to go over for it. But we're almost to the point where we can start looking at game-visible mechanics!
+This was a fairly short post as the "authentication" server doesn't do a whole lot, but is an important piece of the network architecture. In the next blog post we are going to start looking into the game-server, and it's going to get -chonky- as there are a lot of things to go over for it. But we're almost to the point where we can start looking at game-visible mechanics!
