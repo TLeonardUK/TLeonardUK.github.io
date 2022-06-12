@@ -24,7 +24,7 @@ message RequestHandshake {
 }
 ```
 
-Once the client sends this to the server, something unusual happens. The server replies with a response message, with a 27 byte payload, which is both unencrypted and isn't parsable as a protobuf. As soon as the game recieves this all messages that follow are not longer decryptable!
+Once the client sends this to the server, something unusual happens. The server replies with a response message, with a 27 byte payload, which is both un-encrypted and isn't parsable as a protobuf. As soon as the game receives this all messages that follow are not longer decryptable!
 
 So what exactly is going on here? If we have a look at the unknown field in the RequestHandshake message as well as the response, we can get get an idea.
 
@@ -40,7 +40,7 @@ If we run the process multiple times we can also see that the values are never c
 
 Got an inkling of whats going on here yet?
 
-It's a key-exchange! By the time we get into the game we will be sending a lot of messages often, and RSA just isn't suitable for doing. It's encryption and decryption costs are infeasible for realtime usage. So the server and game exchange key material from which to derive a symetric key for a more lightweight encryption algorithm.
+It's a key-exchange! By the time we get into the game we will be sending a lot of messages often, and RSA just isn't suitable for doing. It's encryption and decryption costs are infeasible for realtime usage. So the server and game exchange key material from which to derive a symmetric key for a more lightweight encryption algorithm.
 
 Normally what happens in this situation is both game and server send each other a few bytes of random data and combine them together in a deterministic way to come to a shared conclusion on the key they should use for future communications.
 
@@ -82,11 +82,11 @@ message GetServiceStatusResponse {
 }
 ```
 
-If the user is using an out of date version of the game, the server will send back an empty response with no fields set. If the game recieves a response like this it will show a message telling the user to update their game.
+If the user is using an out of date version of the game, the server will send back an empty response with no fields set. If the game receives a response like this it will show a message telling the user to update their game.
 
 # Key Exchange Redux
 
-Suprise! You thought we had already exchanged encryption keys earlier. Well guess what, we're going to do it again!
+Surprise! You thought we had already exchanged encryption keys earlier. Well guess what, we're going to do it again!
 
 [![First key exchange, but what about second](/assets/images/posts/ds3os_3/key_exchange.png)](/assets/images/posts/ds3os_2/key_exchange.png)
 
@@ -164,7 +164,7 @@ Before we start looking at the next server, there are some entries in this struc
 
 auth_token its a randomly generated number we will be using on the game server to tell it we have been authenticated by this server and to let us connect. We will go more into detail about how this fits into things in the future.
 
-unknown_1 through unknown_11 haven't been investigated much yet. They must be set to the values shown above though or the game will crash. I speculate from the behaviour I've seen that that these are potentially configuration values for memory allocation, they have very suspicious power-of-two-ey numbers which definitely makes me believe they were defined by a programmer.
+unknown_1 through unknown_11 haven't been investigated much yet. They must be set to the values shown above though or the game will crash. I speculate from the behavior I've seen that that these are potentially configuration values for memory allocation, they have very suspicious power-of-two-ey numbers which definitely makes me believe they were defined by a programmer.
 
 unknown_horror however is where the real fun is. It's uninitialized data, which appears to be leaking parts of the stack on the game server. Uh-oh. Given the security problems the Dark Soul's games have recently been notorious for ([Info here for those out of the loop](https://www.fanbyte.com/news/dark-souls-3-rce-vulnerability-code-present-elden-ring/)), it really does feel like FromSoftware should probably hire some pen-testers and audit their network code.
 

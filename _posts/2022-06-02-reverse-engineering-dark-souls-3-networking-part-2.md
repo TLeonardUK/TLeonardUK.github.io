@@ -230,13 +230,13 @@ I've never been able to determine the point of these values, they don't do anyth
 
 # The Message Payload
 
-At this point we have enough information to emulate the sending and recieving of messages from the game server. However we do not yet know how the payload of the message is structured.
+At this point we have enough information to emulate the sending and receiving of messages from the game server. However we do not yet know how the payload of the message is structured.
 
 The first step is to get it decrypted. With the keypair we made in the previous part of this guide, we can now decrypt it using the private key. Using OpenSSL we just need to make a call to [RSA_private_encrypt](https://www.openssl.org/docs/man1.1.1/man3/RSA_private_decrypt.html). 
 
 The padding mode depends on which side of the connection we are on, the client encrypts using **RSA_PKCS1_OAEP_PADDING**, while the server encrypts using **RSA_X931_PADDING**, this can be confirmed by breakpointing the RSA encryption and decryption functions in a debugger.
 
-As our encryption is asymetric, you may be asking how the client decrypts messages send by the server if it only has a public key. To do this the game exploits an intresting quirk of RSA cryptography, its possible to encrypt with the private key and decrypt with the public key. This is exactly what happens when the server sends the client message. For anyone contemplating doing this though, don't, it's terrible for a number of reasons. You can read some of these reasons [here](https://rdist.root.org/2007/05/01/rsa-public-keys-are-not-private/), written by someone far more knowledgable about cryptography than myself. 
+As our encryption is asymmetric, you may be asking how the client decrypts messages send by the server if it only has a public key. To do this the game exploits an interesting quirk of RSA cryptography, its possible to encrypt with the private key and decrypt with the public key. This is exactly what happens when the server sends the client message. For anyone contemplating doing this though, don't, it's terrible for a number of reasons. You can read some of these reasons [here](https://rdist.root.org/2007/05/01/rsa-public-keys-are-not-private/), written by someone far more knowledgeable about cryptography than myself. 
 
 So anyway, once we've decrypted the first message payload, what exactly do we get?
 
@@ -277,13 +277,13 @@ This was probably the most time-consuming part of making DS3OS. Especially as th
 
 There are two useful tools we can use to make this process easier. 
 
-If we log each protobuf recieved we can use the --decode option in Protobuf compiler (protoc). This will show us the field number, value and data type of each field in the provided protobuf. However while useful, this is very problematic when optional fields are defined, or for messages we cannot get captures of easily.
+If we log each protobuf received we can use the --decode option in Protobuf compiler (protoc). This will show us the field number, value and data type of each field in the provided protobuf. However while useful, this is very problematic when optional fields are defined, or for messages we cannot get captures of easily.
 
 A much more robust way we can do this is to read the parsing code in Ghidra, and reconstruct the fields from there. Index 7 in the vtable of each type is the deserialization function.
 
 Take for example the following Protobuf deserialization function (this is for the message called RequestQueryLoginServerInfo).
 
-[![Ghidra Showing Dissassembly](/assets/images/posts/ds3os_2/ghidra_protobuf_decompile.png)](/assets/images/posts/ds3os_2/ghidra_protobuf_decompile.png)
+[![Ghidra Showing Disassembly](/assets/images/posts/ds3os_2/ghidra_protobuf_decompile.png)](/assets/images/posts/ds3os_2/ghidra_protobuf_decompile.png)
 
 This might seem indecipherable, but if we know one single thing about the protobuf wire format ([lots of info about the format here](https://developers.google.com/protocol-buffers/docs/encoding)) it becomes much easier to understand.
 
@@ -312,7 +312,7 @@ After this point its just a matter of figuring out what each of the fields actua
 
 So assuming we have reverse engineered all the protobufs, what exactly is the initial packet thats sent on connection.
 
-It turns out the protobuf that the recieved data matches up to is RequestQueryLoginServerInfo, which has the following protobuf representation:
+It turns out the protobuf that the received data matches up to is RequestQueryLoginServerInfo, which has the following protobuf representation:
 
 ```protobuf
 message RequestQueryLoginServerInfo {

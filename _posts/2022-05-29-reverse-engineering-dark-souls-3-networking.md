@@ -14,7 +14,7 @@ Being a programmer, I've also had somewhat more interest than is probably health
 
 It was around a year ago that I was reading the ?ServerName? discord, probably the largest modding community for these games. Some of the members were discussing the prospect of private servers for games so that modded games had somewhere to play that wasn't the official banned-server, which by its nature was populated with all the worst kinds of cheaters.
 
-This discussion peaked my interest as it just the kind of challenge I have the skillset to help with. 
+This discussion peaked my interest as it just the kind of challenge I have the skill set to help with. 
 
 From what I saw several members had attempted to make private servers for the latest game, Dark Souls III, but hadn't got much past just getting the game to try to establish connections to an third-party server, the information they had acquired gave me the starting point to eventually produce: [Dark Souls 3 Open Server (GitHub)](http://github.com/TLeonardUK/ds3os). 
 
@@ -38,15 +38,15 @@ However all multiplayer traffic in FromSoftware's games is actually sent entirel
 
 # Establishing connections to a different server
 
-Getting the game to connect to a different server is suprisingly more involved than you might expect.
+Getting the game to connect to a different server is surprisingly more involved than you might expect.
 
-The initial connection made is a TCP connection, specifically to **fdp-steam-ope-login.fromsoftware-game.net**, this can be seen by taking a wireshark capture of the game booting up.
+The initial connection made is a TCP connection, specifically to **fdp-steam-ope-login.fromsoftware-game.net**, this can be seen by taking a Wireshark capture of the game booting up.
 
 [![Wireshark showing hostname](/assets/images/posts/ds3os/wireshark_hostname.png)](/assets/images/posts/ds3os/wireshark_hostname.png)
 
 <sup>Note: 54.148.23.40 is the resolved ip of fdp-steam-ope-login.fromsoftware-game.net. Imagine a complete connection here, FromSoftware's servers are down at the time of writing.</sup>
 
-My initial thoughts at this point would probably be to add a host file entry, or detour the dns resolution functions in the game to have that domain return the IP of my shiney new server. Then we could get down to figuring out the traffic protocol!
+My initial thoughts at this point would probably be to add a host file entry, or detour the dns resolution functions in the game to have that domain return the IP of my shiny new server. Then we could get down to figuring out the traffic protocol!
 
 However if we look at the actual data being sent during this initial connection, you might notice a stumbling block:
 
@@ -54,7 +54,7 @@ However if we look at the actual data being sent during this initial connection,
 
 That looks suspiciously like its encrypted or ciphered in some way! Not a problem you might say? Just find the encryption key? 
 
-Well if we load the game's exe up in my favourite decompiler, [Ghidra](https://github.com/NationalSecurityAgency/ghidra), we could have a look for clues! The game makes use of RTTI (Runtime Type Information), so there is a wealth of type names that can give us a general idea of how the game structures things.
+Well if we load the game's exe up in my favorite decompiler, [Ghidra](https://github.com/NationalSecurityAgency/ghidra), we could have a look for clues! The game makes use of RTTI (Runtime Type Information), so there is a wealth of type names that can give us a general idea of how the game structures things.
 
 [![Ghidra showing Nauru functions](/assets/images/posts/ds3os/ghidra_nauru.png)](/assets/images/posts/ds3os/ghidra_nauru.png)
 
@@ -74,13 +74,13 @@ So lets start with the easy steps first, and search the exe for reference to the
 
 [![Ghidra showing no string results](/assets/images/posts/ds3os/ghidra_string_search.png)](/assets/images/posts/ds3os/ghidra_string_search.png)
 
-Bad luck, none of our string searchs show anything useful, just some parts of the OpenSSL library. 
+Bad luck, none of our string search's show anything useful, just some parts of the OpenSSL library. 
 
 Interestingly if we look at the previous entries in the Dark Souls series we can see the keys and hostname ARE hard-coded in the exe in a visible format.
 
 [![Ghidra showing Dark Souls 2 keys](/assets/images/posts/ds3os/ghidra_darksouls2_keys.png)](/assets/images/posts/ds3os/ghidra_darksouls2_keys.png)
 
-So unless Dark Souls 3 has fundementally changed how it handles online connections, which seems unlikely as most of the RTTI in the area matches up, then the key is probably obfuscated or stored in a different location.
+So unless Dark Souls 3 has fundamentally changed how it handles online connections, which seems unlikely as most of the RTTI in the area matches up, then the key is probably obfuscated or stored in a different location.
 
 We know that the key has to be available in memory at the point its passed to the OpenSSL library to do the packet encryption, so what we can do is find the relevant openssl functions, put breakpoints in and trace backwards up the callstack to where the key comes from? Fortunately openssl has a lot of RTTI information and it's functions tend to compile to the same machine code, so its easy to pattern match from known compiled code and find the functions we want.
 
