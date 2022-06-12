@@ -145,9 +145,9 @@ This is done by a sequence of packets known as a handshake. If you've ever read 
 
 Sequence numbers tradtionally start out as randomized, though its not strictly neccessary, in this example the clients sequence numbers start at 1 and the servers at 1000.
 
-1. The client first sends a ```SYN``` (Syncronize) packet to the server with their sequence number in it.
-2. The server then sends back an ```SYN_ACK``` (Syncronize Acknowledge) packet with their sequence number in it and the sequence number the client sent.
-3. The client then sends back an ```ACK``` (Acknowledge) packet with the ```SYN_ACK```'s sequence number in it.
+- The client first sends a ```SYN``` (Syncronize) packet to the server with their sequence number in it.
+- The server then sends back an ```SYN_ACK``` (Syncronize Acknowledge) packet with their sequence number in it and the sequence number the client sent.
+- The client then sends back an ```ACK``` (Acknowledge) packet with the ```SYN_ACK```'s sequence number in it.
 
 At this point both sides of the connection know what the others sequence number is and have acknowledge that they know it. At this point the connection can start exchanging data, each side will expect the next packet from the other side to always have a sequence number of sequence+1.
 
@@ -160,9 +160,9 @@ Ok now we have a connection established!
 
 So how do we actually exchange data? Well its yet another three way process.
 
-1. First one end of the connection sends a ```DAT``` (data) type packet, with a payload containing the data we want to send.
-2. The recieving end then sends a ```DAT_ACK``` (Data Acknowledge) packet back, with it's remote sequence number set to the sequence number of the initial ```DAT``` packet. If this is a reply with additional data (eg. data requested by the ```DAT``` packet), then the payload contains that additional data.
-3. The initial side sends a ```ACK``` (Acknowledge) packet with the remote sequence number of the ```DAT_ACK``` packet.
+- First one end of the connection sends a ```DAT``` (data) type packet, with a payload containing the data we want to send.
+- The recieving end then sends a ```DAT_ACK``` (Data Acknowledge) packet back, with it's remote sequence number set to the sequence number of the initial ```DAT``` packet. If this is a reply with additional data (eg. data requested by the ```DAT``` packet), then the payload contains that additional data.
+- The initial side sends a ```ACK``` (Acknowledge) packet with the remote sequence number of the ```DAT_ACK``` packet.
 
 It's very important that ```DAT_ACK``` packets are sent, even if no reply is required. Not doing so will cause the game to timeout and consider the connection broken.
 
