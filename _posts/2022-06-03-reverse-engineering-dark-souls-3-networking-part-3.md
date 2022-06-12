@@ -46,7 +46,7 @@ Normally what happens in this situation is both game and server send each other 
 
 *However* Dark Souls 3 appears to be broken in this regard (a phrase you might want to get used to ...). The key material the server sends back is entirely unused. The key used for all future communications is the raw 16 bytes that the game initially sends. 
 
-So what cipher does the game use for all future communications if not RSA? It uses a very obscure ones, that as far as I'm aware only has a single implementation public on the internet - in the original authors [GitHub](https://github.com/BrianGladman/modes/). The cipher is AES-CWC-128.
+So what cipher does the game use for all future communications if not RSA? It uses a very obscure ones, that as far as I'm aware only has a single implementation public on the internet - in the original authors [GitHub](https://github.com/BrianGladman/modes/). The cipher is AES-CWC-128, as hinted to by the CWCObject we found when looking through the RTTI types in the previous post.
 
 Also if you wanted to use the reference implementation, you might be disappointed! FromSoftware for whatever reason decided to flip the endian of some calculations in the middle of the implementation (at line 498 of cwc.c if your curious). Good job to the guys on the ?ServerName? discord who managed to figure out that nightmare.
 
@@ -174,3 +174,4 @@ But anyhow, we have our destination, so onwards to the game server!
 
 This was a fairly short post as the "authentication" server doesn't do a whole lot, but is an important piece of the network architecture. In the next blog post we are going to start looking into the game-server, and it's going to get -chonky- as there are a lot of things to go over for it. But we're almost to the point where we can start looking at game-visible mechanics!
 
+[Continue to the next entry](/2022/06/09/reverse-engineering-dark-souls-3-networking-part-4)
