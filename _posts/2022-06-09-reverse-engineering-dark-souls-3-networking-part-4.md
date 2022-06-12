@@ -65,7 +65,7 @@ TCP is stream-orientated protocol. By that we mean that at the application layer
 
 UDP is the polar opposite of TCP. UDP is stateless, meaning that no connection or stream exists concept on the application layer. Instead the application will just recieve any packets (known as datagrams in UDP terminology) that are recieved by the host for the UDP port the application is listening on. All sends and recieves occur as individual packets, these packets have a maximum size dictated by the minimum MTU (Maximum Transmission Unit) setting on the network devices between the sender and the reciever, typically around 1024 bytes, data sent beyond this size may be fragmented during transmission. Importantly UDP is unordered and unreliable - Meaning packets are not guaranteed to get to their destination, and if they do, they are not guaranteed to come in the same order they were sent.
 
-[![UDP VS TCP](/assets/images/posts/ds3os_4/udp_vs_tcp.png)](/assets/images/posts/ds3os_4/udp_vs_tcp.png)
+[![UDP VS TCP](/assets/images/posts/ds3os_4/udp_vs_tcp.jpg)](/assets/images/posts/ds3os_4/udp_vs_tcp.jpg)
 
 <sup>Source unknown, this meme has been going around for years.</sup>
 
