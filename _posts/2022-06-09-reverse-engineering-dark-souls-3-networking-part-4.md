@@ -266,3 +266,5 @@ Why exactly they choose to do it this way I have no idea, its obtuse and unneces
 
 # Coming Up
 Phew, that was a long post. But at least we now know how the game communicates with the server. And we can decipher all the messages it sends. We're now in a position to start looking at high level logic that contains the game features, which is what's coming up in the next post!
+
+[Continue to the next entry](/2022/06/18/reverse-engineering-dark-souls-3-networking-part-5)
