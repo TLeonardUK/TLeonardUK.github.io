@@ -283,3 +283,5 @@ Which is hilariously obfuscated. It's an array of seemingly random values that a
 At this point we know about all the messages required for the user to register a character and get into the game. What remains is to go over the game mechanics.
 
 I'm going to split the mechanics into two final posts, one going over asynchronous ones (ghosts, bloodstains, messages) and one going over all the real-time ones (invasions, summoning, quick matches).
+
+[Continue to the next entry](/2022/06/18/reverse-engineering-dark-souls-3-networking-part-6)
