@@ -175,9 +175,9 @@ This tells the original author who evaluated the message and if they evaluated a
 
 Ritual Mark's aren't something you will ever see in game, they are a feature that was cut during development. I'm mentioning them now more as trivia than anything, the game contains a complete protobuf set that is structurally setup almost the same as the blood messages. It looks like this was likely something to do with the cut feature that allow you to create bonfires anywhere in the world using enemy corpses.
 
-The below video is worth watching, it explains and recreates this functionality.
+The below video is worth watching, it both explains and recreates this functionality.
 
-[![Sacrifice Youtube](https://img.youtube.com/vi/zziY68RdKK4/0.jpg)](https://www.youtube.com/watch?v=zziY68RdKK4)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/zziY68RdKK4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 # Blood Stains
 
@@ -444,3 +444,5 @@ message RequestGetPlayerCharacterResponse {
 # Coming Up
 
 We're almost at the part I'm sure everyone is interested in! The next post is going to go over the real-time mechanics, namely invasions, summoning and quick matches. Exciting!
+
+[Continue to the next entry](/2022/06/18/reverse-engineering-dark-souls-3-networking-part-7)
