@@ -83,7 +83,7 @@ struct packet_header
     uint32_t unknown_5;
     uint32_t unknown_6;
     uint32_t unknown_7;
-    uint32_t sequence_number_2_big_endian;
+    uint32_t sequence_number_2_little_endian;
 };
 ```
 
@@ -113,7 +113,7 @@ struct message_header
 {
     uint32_t unknown_6;
     uint32_t unknown_7;
-    uint32_t sequence_number_2_big_endian;
+    uint32_t sequence_number_2_little_endian;
 };
 ```
 
