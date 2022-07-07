@@ -42,7 +42,7 @@ struct message_header
 
 [![Initial Packet header](/assets/images/posts/ds3os_2/initial_packet_header_2.png)](/assets/images/posts/ds3os_2/initial_packet_header_2.png)
 
-We can guess, from the repeated runs of zeros, that the remainder of the header is likely made up of multiple little-endian multi-byte fields which contain small values. If we break the buffer up assuming the non-zero values are in the least-significant bytes, we can get a rough idea of the structure.
+We can guess, from the repeated runs of zeros, that the remainder of the header is likely made up of multiple big-endian multi-byte fields which contain small values. If we break the buffer up assuming the non-zero values are in the most-significant bytes, we can get a rough idea of the structure.
 
 [![Initial Packet header](/assets/images/posts/ds3os_2/initial_packet_header_3.png)](/assets/images/posts/ds3os_2/initial_packet_header_3.png)
 
@@ -70,7 +70,7 @@ We can use a simple trick to start breaking down these values. By trying to conn
 
 We can see that the the first value and last value seem to increase each time we try to connect. These are likely sequence-numbers of some description, possibly for matching up request packets and responses.
 
-If we do this enough times to overflow the last value we will also discover that it is stored in big-endian.
+If we do this enough times to overflow the last value we will also discover that it is stored in little-endian, the opposite of the other fields.
 
 ```cpp
 struct packet_header
