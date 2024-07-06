@@ -1,5 +1,5 @@
 site: Tim Leonard's Website
-url: http://blog.timleonard.uk
+url: https://timleonard.uk
 title: Tim Leonard's Website
 description: Musing on tech
 twitter:
@@ -11,7 +11,7 @@ author:
   name: Tim Leonard
   avatar:
   email: me@timleonard.uk
-  url: http://blog.timleonard.uk
+  url: https://timleonard.uk
 permalink: pretty
 
 baseurl: ""

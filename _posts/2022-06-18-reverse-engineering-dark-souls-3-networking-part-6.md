@@ -445,4 +445,4 @@ message RequestGetPlayerCharacterResponse {
 
 We're almost at the part I'm sure everyone is interested in! The next post is going to go over the real-time mechanics, namely invasions, summoning and quick matches. Exciting!
 
-[Continue to the next entry](/2022/06/18/reverse-engineering-dark-souls-3-networking-part-7)
+[Continue to the next entry](/2022/06/20/reverse-engineering-dark-souls-3-networking-part-7)
